@@ -39,26 +39,41 @@ if (fs.existsSync(dirName)) {
 }
 
 console.log('\nPreparing URL...');
+
+// slice if there's 'video' at the end (entire programme given as input)
+videoNum[0] = videoNum[0].split('\/').slice(-2)[0];
+
 var downloadURL = vodAPIurl.replace('VIDEO', videoNum[0]);
 //console.log('API URL: ' + downloadURL);
-console.log('Video ID: ', videoNum[0]);
+console.log('Video ID: ' + "\x1b[33m%s\x1b[0m", videoNum[0]);
 
 var APIresponse;
 
 fetch(downloadURL)
-  .then(function(response) {
-    response.text().then(function(text) {
-      APIresponse = text;
-      done();
-    });
-  });
+	.then(function (response) {
+		response.text().then(function (text) {
+			APIresponse = text;
+			//console.log(APIresponse);
+
+			// try downloading:
+			try {
+				done();
+			} catch (errorinio) {
+				// Errors in red...~
+				console.log("\x1b[31m%s\x1b[0m", "--- Error as fvk:\n" + errorinio);
+			}
+		});
+	});
 
 function done() {
-	console.log('\nGot data from API!');
-	var vidTitle = escape(APIresponse.match(/"title":.*/)[0].slice(10, -2)); // returning video (program) name
-	console.log("Video title: " + vidTitle);
+	console.log("\x1b[32m%s\x1b[0m", '\nSuccesfully got data from TVP API!\n');
+
+	var vidTitle = escape(APIresponse.match(/"title":.*/)[0].slice(10, -2));  // returning video (program) name
+	console.log("Video title: " + "\x1b[33m%s\x1b[0m", vidTitle);
+
 	var vidSubtitle = escape(APIresponse.match(/"subtitle":.*/)[0].slice(13, -2).replace("\\", "")); // returning video (subtitle) name
-	console.log("Video subtitle: " + vidSubtitle);
+	console.log("Video subtitle: " + "\x1b[33m%s\x1b[0m", vidSubtitle);
+
 
 	var vidURLs = APIresponse.match(/"url":.*(mp4|m3u8)/g); // all video URLs
 	var vidBitrates = APIresponse.match(/"bitrate":.*/g); // videos bitrates
@@ -66,20 +81,21 @@ function done() {
 
 	// getting maxBitate video's index from matches
 	//console.log("Available bitrates:\n");
-	for (var i=0; i<vidBitrates.length; i++) {
+	for (var i = 0; i < vidBitrates.length; i++) {
 		vidBitrates[i] = parseInt(vidBitrates[i].slice(11, -1));
 		//console.log(i+1 + " - " + vidBitrates[i]);
 	}
 
-		
+
 	// ask for bitrate:
 	//const chosenBitrate = prompt('Choose bitrate number (1-' + vidBitrates.length + '): ');
 
 
 	// getting maximum bitrate from all URLs
 	//console.log(vidBitrates);
+
 	// change '<' to '>' to get max. bitrate, if '<' left - download the lowest bitrate file
-	var maxBitrateIndex = vidBitrates.reduce((iMax, x, i, arr) => x > arr[iMax] ? i : iMax, 0); // get highest bitrate video index
+	var maxBitrateIndex = vidBitrates.reduce((iMax, x, i, arr) => x < arr[iMax] ? i : iMax, 0); // get highest bitrate video index
 	//console.log("Max bitrate index: " + maxBitrateIndex);
 
 
@@ -87,7 +103,7 @@ function done() {
 	//console.log("Matches count: " + vidURLs.length);
 	var vidURLtoDownload = vidURLs[maxBitrateIndex].replace(/\\\//g, "\/").slice(8);
 	//console.log(vidURLs[vidURLs.length - 1].replace(/\\\//g, "\\"));
-	console.log("\nDownloading from URL: " + vidURLtoDownload);
+	console.log("\nDownloading from URL: " + "\x1b[33m%s\x1b[0m", vidURLtoDownload);
 	//console.log(vidURLs);
 
 	//console.log("Downloading file...");
@@ -95,21 +111,45 @@ function done() {
 
 	// Downloading a file (creating/downloading)
 	const https = require('https');
+
 	//console.log("Creating file...");
 	var filename = vidTitle + " - " + vidSubtitle + ".[" + Date.now() + "].mp4";
-	console.log("- Created file: " + filename + " in directory " + dirName + ".");
-	console.log("-- Downloading file... (bitrate: "+vidBitrates[maxBitrateIndex]+")");
+	console.log("- Created file: " + "\x1b[32m%s\x1b[0m", filename + "\x1b[0m", " in directory " + "\x1b[32m", dirName);
+	console.log("\x1b[32m%s\x1b[0m", "-- Downloading file... (bitrate: " + vidBitrates[maxBitrateIndex] + ")");
 	const file = fs.createWriteStream(dirName + "/" + filename);
-	const request = https.get(vidURLtoDownload, function(response) {
-  		response.pipe(file);
-  		
+	const request = https.get(vidURLtoDownload, function (response) {
+		response.pipe(file);
 	});
+
+	
+
+	//var fileSize = 0;
+	request.on('response', function (data) {
+		var fileSize = parseFloat(data.headers['content-length'] / 1048576).toFixed(2); // 1048576 = 1024 squared, bytes in 1 Megabyte
+		console.log('Total filesize: ' + "\x1b[33m%s\x1b[0m", fileSize + " MB");
+	});
+
+
+
+	/* var downloadedSize;
+	request.on('data', function (chunk) {
+		downloadedSize += chunk.length;
+		console.log('Downloaded ' + (downloadedSize / fileSize.toFixed(2) + ' out of ' + fileSize + " MB"));
+	}); */
+
+
+	// ! that doesn't work ffs
+	// TODO: FIX THAAAAAAAAT
+	request.on('end', function () {
+		console.out("\x1b[32m%s\x1b[0m", 'Downloading finished!');
+	});
+
 	// downloading...
-  //console.log(APIresponse);
+	//console.log(APIresponse);
 
 }
 
 function onErr(err) {
-    console.log(err);
-    return 1;
+	console.log(err);
+	return 1;
 }

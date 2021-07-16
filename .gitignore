@@ -28,3 +28,6 @@ yarn-error.log*
 
 # package lock?
 package-lock.json
+
+# ojciec-mateusz testing grounds
+/ojciec-mateusz

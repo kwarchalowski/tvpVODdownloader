@@ -1,7 +1,7 @@
 const rp = require('request-promise');
 const async = require('async');
 const $ = require('cheerio');
-const url = 'https://vod.tvp.pl/website/sprawa-dla-reportera,9326195/video';
+const url = 'https://vod.tvp.pl/website/ojciec-mateusz,1667840/video';
 
 const vidUrls = [];
 
