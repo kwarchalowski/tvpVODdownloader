@@ -3,7 +3,7 @@ const async = require('async');
 const $ = require('cheerio');
 
 module.exports = {
-	parse: function() {
+	parse: async function () {
 		parse();
 	}
 }
@@ -18,7 +18,7 @@ var pagesCount = 0;
 var vidCount = 0;
 
 
-// get pages count 
+// get pages count and return all videos IDs
 const parse = async _ => {
 	await rp(url)
 		.then(async function (html) {
@@ -59,8 +59,6 @@ const parse = async _ => {
 	//console.log(vidUrls);
 	return vidUrls;
 }
-
-
 
 //parse();
 

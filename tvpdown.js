@@ -26,20 +26,8 @@ var url = passedArgs[0];
 var videoNum = url.split(',').slice(-1); // get the last part of URL (video number)
 var dirName = passedArgs[1];
 
-//check if directory exists, create one if not
-const fs = require('fs');
 const { timeout } = require("async");
-const dir = './' + dirName;
 
-if (fs.existsSync(dirName)) {
-	console.log('\nDirectory ' + dirName + ' exists!');
-	// download to the dir
-} else {
-	console.log('\nDirectory ' + dirName + ' does not exist!');
-	fs.mkdirSync(dirName, 0744);
-	console.log('\nCreated directory ./' + dirName);
-	// download to the dir
-}
 
 console.log('\nPreparing URL...');
 
@@ -51,7 +39,8 @@ var downloadURL = vodAPIurl.replace('VIDEO', videoNum[0]);
 console.log('Video ID: ' + "\x1b[33m%s\x1b[0m", videoNum[0]);
 
 var APIresponse;
-
+let urlsList = [];
+// main function that creates directory etc.
 fetch(downloadURL)
 	.then(function (response) {
 		response.text().then(async function (text) {
@@ -60,7 +49,11 @@ fetch(downloadURL)
 
 			// try downloading:
 			try {
-				done();
+				urlsList = await allVids.parse()
+					.then(xd => function (xd) {
+						checkDirectory();
+						done();
+					});
 			} catch (errorinio) {
 				// Errors in red...~
 				console.log("\x1b[31m%s\x1b[0m", "--- Error as fvk:\n" + errorinio);
@@ -68,14 +61,17 @@ fetch(downloadURL)
 		});
 	});
 
+//let urlsList = [];
 async function done() {
 
 	try {
 
 		// TODO: it's BROKEN HEREEEEEEEEEEEEEEEEEE
 		//[urlsList] = await allVids.parse();
-		let urlsList = await allVids.parse();
+		//let urlsList = allVids.parse();
 
+
+		//	urlsList = result;
 		console.log('Urls list: ' + urlsList);
 
 		console.log("\x1b[32m%s\x1b[0m", '\nSuccesfully got data from TVP API!\n');
@@ -161,9 +157,26 @@ async function done() {
 	} catch (err) {
 		// Errors in red...~
 		console.log("\x1b[31m%s\x1b[0m", "--- Error as fvk:\n" + err);
+		//console.error(err);
 	}
 
 	return 1;
+}
+
+//check if directory exists, create one if not
+function checkDirectory() {
+	const fs = require('fs');
+	const dir = './' + dirName;
+
+	if (fs.existsSync(dirName)) {
+		console.log('\nDirectory ' + dirName + ' exists!');
+		// download to the dir
+	} else {
+		console.log('\nDirectory ' + dirName + ' does not exist!');
+		fs.mkdirSync(dirName, 0744);
+		console.log('\nCreated directory ./' + dirName);
+		// download to the dir
+	}
 }
 
 function onErr(err) {
