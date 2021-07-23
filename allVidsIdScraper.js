@@ -1,11 +1,13 @@
 const rp = require('request-promise');
 const async = require('async');
 const $ = require('cheerio');
+const dwnldr = require('./tvpdown');
 
 module.exports = {
 	parse: async function () {
 		parse();
-	}
+	},
+	vidUrls: [],
 }
 
 
@@ -16,6 +18,9 @@ const vidUrls = [];
 var basePageUrl = url + "?order=oldest&page="
 var pagesCount = 0;
 var vidCount = 0;
+
+var passedArgs = process.argv.slice(2);
+let dwnldUrl = passedArgs[0];
 
 
 // get pages count and return all videos IDs
@@ -57,8 +62,15 @@ const parse = async _ => {
 		});
 	console.log("All videos count: " + vidUrls.length);
 	//console.log(vidUrls);
-	return vidUrls;
-}
+
+
+	dwnldr.checkDirectory(vidUrls);
+	dwnldr.done(vidUrls);
+
+	return 1;
+	//return vidUrls;
+};
+
 
 //parse();
 

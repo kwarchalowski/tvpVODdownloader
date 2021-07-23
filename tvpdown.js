@@ -1,6 +1,20 @@
 // TVP VOD DOWNLOADER
 // by z0miren, Dec 2020
 //---------------------
+let dwnldUrl = "https://vod.tvp.pl/website/trzynascie-lat,36193160/video";
+
+module.exports = {
+	checkDirectory: function (videos) {
+		checkDirectory(videos);
+	},
+	done: function (videos) {
+		done(videos);
+	},
+	doEverything: function () {
+		doEverything();
+	}
+}
+
 
 const fetch = require("node-fetch");
 
@@ -37,45 +51,61 @@ videoNum[0] = videoNum[0].split('\/').slice(-2)[0];
 var downloadURL = vodAPIurl.replace('VIDEO', videoNum[0]);
 //console.log('API URL: ' + downloadURL);
 console.log('Video ID: ' + "\x1b[33m%s\x1b[0m", videoNum[0]);
-
+console.log("downloadURL: " + downloadURL);
 var APIresponse;
-let urlsList = [];
-// main function that creates directory etc.
-fetch(downloadURL)
-	.then(function (response) {
-		response.text().then(async function (text) {
-			APIresponse = text;
-			//console.log(APIresponse);
 
-			// try downloading:
-			try {
-				urlsList = await allVids.parse()
-					.then(xd => function (xd) {
-						checkDirectory();
-						done();
-					});
-			} catch (errorinio) {
-				// Errors in red...~
-				console.log("\x1b[31m%s\x1b[0m", "--- Error as fvk:\n" + errorinio);
-			}
+let urlsList = [];
+
+//!  parse URLs
+allVids.parse();
+
+
+// main function that creates directory etc.
+
+function downloadSingleURL(singleVideoURL) {
+	fetch(singleVideoURL)
+		.then(function (response) {
+			response.text()
+				.then(async function (text) {
+					APIresponse = text;
+					//console.log(APIresponse);
+
+					// try downloading:
+					try {
+						//console.log(text);
+						//urlsList = allVids.parse();
+
+						/* 					await checkDirectory();
+											await done(); */
+
+					} catch (errorinio) {
+						// Errors in red...~
+						console.log("\x1b[31m%s\x1b[0m", "--- Error as fvk:\n" + errorinio);
+					}
+				});
 		});
-	});
+};
+
 
 //let urlsList = [];
-async function done() {
+function done(videos) {
 
 	try {
 
+		console.log("[inside done():\n");
 		// TODO: it's BROKEN HEREEEEEEEEEEEEEEEEEE
 		//[urlsList] = await allVids.parse();
 		//let urlsList = allVids.parse();
 
 
+
 		//	urlsList = result;
-		console.log('Urls list: ' + urlsList);
-
+		//console.log('Urls list: ' + urlsList);
+		//console.log(videos);
 		console.log("\x1b[32m%s\x1b[0m", '\nSuccesfully got data from TVP API!\n');
-
+		//console.log(videos[0]);
+		downloadSingleURL("https://vod.tvp.pl/website/" + videos[0]);
+	
 		var vidTitle = escape(APIresponse.match(/"title":.*/)[0].slice(10, -2));  // returning video (program) name
 		console.log("Video title: " + "\x1b[33m%s\x1b[0m", vidTitle);
 
@@ -145,11 +175,11 @@ async function done() {
 		}); */
 
 
-		// ! that doesn't work ffs
-		// TODO: FIX THAAAAAAAAT
-		request.on('end', function () {
-			console.out("\x1b[32m%s\x1b[0m", 'Downloading finished!');
-		});
+		/* 		// ! that doesn't work ffs
+				// TODO: FIX THAAAAAAAAT
+				request.on('end', function () {
+					console.out("\x1b[32m%s\x1b[0m", 'Downloading finished!');
+				}); */
 
 		// downloading...
 		//console.log(APIresponse);
@@ -159,12 +189,13 @@ async function done() {
 		console.log("\x1b[31m%s\x1b[0m", "--- Error as fvk:\n" + err);
 		//console.error(err);
 	}
-
-	return 1;
+	console.log("end of done()]");
 }
 
 //check if directory exists, create one if not
-function checkDirectory() {
+function checkDirectory(videos) {
+	console.log("[inside checkDirectory():\n");
+	console.log("--- videos.length: " + videos.length);
 	const fs = require('fs');
 	const dir = './' + dirName;
 
@@ -177,7 +208,11 @@ function checkDirectory() {
 		console.log('\nCreated directory ./' + dirName);
 		// download to the dir
 	}
+
+	console.log("end of checkDirectory()]")
 }
+
+
 
 function onErr(err) {
 	console.log(err);
