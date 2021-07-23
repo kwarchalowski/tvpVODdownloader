@@ -67,8 +67,8 @@ const parse = async _ => {
 	dwnldr.checkDirectory(vidUrls);
 	dwnldr.done(vidUrls);
 
-	return 1;
-	//return vidUrls;
+	//return 1;
+	return vidUrls;
 };
 
 
