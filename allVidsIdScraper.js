@@ -3,6 +3,7 @@ const async = require('async');
 const $ = require('cheerio');
 const dwnldr = require('./tvpdown');
 
+
 module.exports = {
 	parse: async function () {
 		parse();
@@ -12,7 +13,7 @@ module.exports = {
 
 
 //const url = 'https://vod.tvp.pl/website/ojciec-mateusz,1667840/video';
-const url = 'https://vod.tvp.pl/website/egzamin-z-zycia,1667578/video';
+let url = 'https://vod.tvp.pl/website/pucul-i-grzechu,252375/video';
 const vidUrls = [];
 
 var basePageUrl = url + "?order=oldest&page="
@@ -21,10 +22,11 @@ var vidCount = 0;
 
 var passedArgs = process.argv.slice(2);
 let dwnldUrl = passedArgs[0];
-
+let singleVideoURL = "";
 
 // get pages count and return all videos IDs
 const parse = async _ => {
+	//url = singleVideoURL;
 	await rp(url)
 		.then(async function (html) {
 
@@ -65,7 +67,7 @@ const parse = async _ => {
 
 
 	dwnldr.checkDirectory(vidUrls);
-	dwnldr.done(vidUrls);
+	dwnldr.downloadAll(vidUrls);
 
 	//return 1;
 	return vidUrls;
