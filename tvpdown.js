@@ -7,7 +7,11 @@ module.exports = {
 		checkDirectory(videos);
 	},
 	downloadAll: function (videos) {
-		downloadAll(videos);
+		return downloadAll(videos);
+		/* 		return new Promise((resolve, _reject) => {
+						downloadAll(videos);
+						resolve('Oto prezent!');
+				}) */
 	},
 	doEverything: function () {
 		doEverything();
@@ -21,7 +25,7 @@ const fs = require('fs');
 const prompt = require('prompt-sync')();
 
 const allVids = require('./allVidsIdScraper');
-const vodDelayTimeInSecs = 5;
+const vodDelayTimeInSecs = 1;
 // passedArgs -
 // 0 - site URL
 // 1 - downloads folder name (dirName) at place
@@ -48,7 +52,6 @@ var APIresponse;
 
 //!  parse URLs
 allVids.parse();
-
 
 //! main function that creates directory etc.
 
@@ -121,7 +124,27 @@ async function downloadSingleURL(singleVideoURL) {
 
 							//! redownloading?
 							if (fileSize == 0) {
-								console.error("\x1b[31m%s\x1b[0m", "-- Filesize of this file is 0 MB, something went wrong, try again later...");
+								console.error("\x1b[31m%s\x1b[0m", "-- Filesize of this file is 0 MB, something went wrong, re-downloading!");
+
+								//! removing old file:
+								fs.unlink(dirName + "/" + filename, function (err) {
+									if (err && err.code == 'ENOENT') {
+										// file doens't exist
+										console.info("\x1b[31m%s\x1b[0m", "File doesn't exist, won't remove it.");
+									} else if (err) {
+										// other errors, e.g. maybe we don't have enough permission
+										console.error("\x1b[31m%s\x1b[0m", "Error occurred while trying to remove file");
+									} else {
+										console.log("\x1b[34m%s\x1b[0m", filename + " removed!");
+									}
+								});
+
+								//! redownloading:
+								try {
+									downloadSingleURL(url);
+								} catch (e) {
+									console.error(e);
+								}
 							}
 
 							console.log('Total filesize: ' + "\x1b[33m%s\x1b[0m", fileSize + " MB");
@@ -174,21 +197,33 @@ async function downloadAll(videos) {
 		const me = Symbol();
 		/* 0 is the priority, -1 is higher priority than 0 */
 		p.push(queue.wait(me, 0)
-			.then(() => downloadSingleURL("https://vod.tvp.pl/website/" + videos[i]))
-			.then((html) => {
-				//data[videos[i]] = parse(html);
+			.then(async function (xd) {
+				await downloadSingleURL("https://vod.tvp.pl/website/" + videos[i])
 				console.log("\x1b[35m%s\x1b[0m", '... downloading (there\'s ' + vodDelayTimeInSecs + ' seconds between download requests):');
 			})
 			.catch((e) => console.error(e))
 			/* don't forget this or you will end up freezing */
-			.finally(() => queue.end(me)));
-	}
+			.finally(() => {
+				queue.end(me);
+			})
+
+		)
+	};
 
 
 	//! wait for all Promises from queue returned?
-	await Promise.allSettled(p);
-	//! return THIS promise?
-	return Promise.resolve(1);
+	await Promise.allSettled(p)
+		.then(() => {
+			//console.log("\x1b[37m%s\x1b[0m", "..... its over dla chlopa .....");
+			//! return THIS promise?
+			return new Promise((resolve, _reject) => {
+				setTimeout(() => {
+					console.log("\x1b[36m%s\x1b[0m", ".... i\'ve waited 4 seconds ....");
+					resolve(1);
+				}, 4000); //! 4 seconds after finishing
+			});
+		})
+
 }
 
 //console.log("done downloading item #" + i);
