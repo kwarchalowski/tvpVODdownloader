@@ -13,7 +13,8 @@ module.exports = {
 
 
 //const url = 'https://vod.tvp.pl/website/ojciec-mateusz,1667840/video';
-let url = 'https://vod.tvp.pl/website/pucul-i-grzechu,252375/video';
+//let url = 'https://vod.tvp.pl/website/pucul-i-grzechu,252375/video';
+let url = 'https://vod.tvp.pl/website/kapitan-tsubasa,50041310/video';
 const vidUrls = [];
 
 var basePageUrl = url + "?order=oldest&page="
