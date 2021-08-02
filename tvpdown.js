@@ -46,7 +46,7 @@ var dirName = passedArgs[1];
 
 let urlsList = [];
 
-
+let redownloading = false;
 
 var APIresponse;
 
@@ -100,8 +100,11 @@ async function downloadSingleURL(singleVideoURL) {
 
 						//! getting maximum/minimum bitrate from all URLs
 						// change '<' to '>' to get max. bitrate, if '<' left - download the lowest bitrate file
-						var maxBitrateIndex = vidBitrates.reduce((iMax, x, i, arr) => x < arr[iMax] ? i : iMax, 0); // get highest bitrate video index
-
+						if (!redownloading) {
+							var maxBitrateIndex = vidBitrates.reduce((iMax, x, i, arr) => x > arr[iMax] ? i : iMax, 0); // get highest bitrate video index
+						} else {
+							var maxBitrateIndex = vidBitrates.reduce((iMax, x, i, arr) => x > arr[iMax+1] ? i : iMax, 0); // get highest bitrate video index
+						}
 						//! getting video URLs
 						var vidURLtoDownload = vidURLs[maxBitrateIndex].replace(/\\\//g, "\/").slice(8);
 
@@ -125,6 +128,7 @@ async function downloadSingleURL(singleVideoURL) {
 							//! redownloading?
 							if (fileSize == 0) {
 								console.error("\x1b[31m%s\x1b[0m", "-- Filesize of this file is 0 MB, something went wrong, re-downloading!");
+								redownloading = true;
 
 								//! removing old file:
 								fs.unlink(dirName + "/" + filename, function (err) {
@@ -141,10 +145,15 @@ async function downloadSingleURL(singleVideoURL) {
 
 								//! redownloading:
 								try {
-									downloadSingleURL(url);
+									setTimeout(() => {
+										downloadSingleURL(url);
+									}, 1000); //! try re-downloading in 1 sec intervals
+									
 								} catch (e) {
 									console.error(e);
 								}
+							} else {
+								redownloading = false;
 							}
 
 							console.log('Total filesize: ' + "\x1b[33m%s\x1b[0m", fileSize + " MB");
@@ -210,7 +219,7 @@ async function downloadAll(videos) {
 		)
 	};
 
-
+	let delayInSecs = 6;
 	//! wait for all Promises from queue returned?
 	await Promise.allSettled(p)
 		.then(() => {
@@ -218,9 +227,9 @@ async function downloadAll(videos) {
 			//! return THIS promise?
 			return new Promise((resolve, _reject) => {
 				setTimeout(() => {
-					console.log("\x1b[36m%s\x1b[0m", ".... i\'ve waited 4 seconds ....");
+					console.log("\x1b[36m%s\x1b[0m", ".... i\'ve waited " + delayInSecs + " seconds ....");
 					resolve(1);
-				}, 4000); //! 4 seconds after finishing
+				}, delayInSecs*1000); //! 'delayInSecs' seconds after finishing
 			});
 		})
 
