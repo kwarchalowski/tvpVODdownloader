@@ -14,6 +14,11 @@
 # node_modules (big files etc)
 /node_modules
 
+# vscode debugging catalogue
+/.vscode
+/debug-folder
+
+
 # misc
 .DS_Store
 .env.local
@@ -35,3 +40,5 @@ package-lock.json
 /egzamin-z-zycia
 /tsubasa
 /jacek-agatka
+/sloneczna-wlocznia
+/agatka

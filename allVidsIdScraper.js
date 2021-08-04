@@ -15,7 +15,9 @@ module.exports = {
 //const url = 'https://vod.tvp.pl/website/ojciec-mateusz,1667840/video';
 //let url = 'https://vod.tvp.pl/website/pucul-i-grzechu,252375/video';
 //let url = 'https://vod.tvp.pl/website/kapitan-tsubasa,50041310/video';
-let url = 'https://vod.tvp.pl/website/jacek-i-agatka,52233213/video';
+//let url = 'https://vod.tvp.pl/website/jacek-i-agatka,52233213/video';
+//let url = 'https://vod.tvp.pl/website/agatka,45814894/video';
+let url = 'https://vod.tvp.pl/website/kapitan-tsubasa,50041310/video'
 const vidUrls = [];
 
 var basePageUrl = url + "?order=oldest&page="
@@ -31,7 +33,7 @@ const parse = async _ => {
 	//url = singleVideoURL;
 	await rp(url)
 		.then(async function (html) {
-
+			
 			//success!
 			pagesCount = $('.pagination > li.lastItem > a', html)[0].attribs.href.split('=')[1];
 			//console.log($('.pagination > li.lastItem > a', html)[0].attribs.href.split('=')[1]);
@@ -75,7 +77,7 @@ const parse = async _ => {
 		await dwnldr.downloadAll(vidUrls)
 			.then(() => {
 				console.log("\x1b[34m%s\x1b[0m", "... all should be fine now ...\n\n");
-				console.log("\x1b[36m%s\x1b[0m", "!!  WAIT FOR ALL DOWNLOADS TO FINISH  !!\n\n");
+				console.log("\x1b[36m%s\x1b[0m", "/------------------------------------/\n!!  WAIT FOR ALL DOWNLOADS TO FINISH\n/------------------------------------/\n\n");
 			})
 	} catch (err) {
 		console.error(err);

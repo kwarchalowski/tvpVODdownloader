@@ -2,6 +2,9 @@
 // by z0miren, Dec 2020
 //---------------------
 
+// TODO: ANY URL FORMAT PARSING
+
+
 module.exports = {
 	checkDirectory: function (videos) {
 		checkDirectory(videos);
@@ -44,6 +47,7 @@ var videoNum = url.split(',').slice(-1); // get the last part of URL (video numb
 var dirName = passedArgs[1];
 
 
+
 let urlsList = [];
 
 let redownloading = false;
@@ -51,20 +55,37 @@ let redownloading = false;
 var APIresponse;
 
 //!  parse URLs
+//! ----------------------------------
 allVids.parse();
+//! ----------------------------------
 
-//! main function that creates directory etc.
+
 
 async function downloadSingleURL(singleVideoURL) {
 
-
 	console.log('\nPreparing URL...');
 	url = singleVideoURL;
-	videoNum = url.split(',').slice(-1);
+	videoNum = url.split(',');
+	//videoNum = url.split(',').slice(-1);
+
+	//! husk video ID from given URL
+	for (let i = 0; i < videoNum.length; i++) {
+
+		//! parse URL slices to Int
+		videoNum[i] = parseInt(videoNum[i]);
+
+		//! get only video ID from URL and set it on first place (videoNum[0])
+		if (!isNaN(videoNum[i])) {
+			videoNum[0] = videoNum[i];
+		}
+	}
 
 	// slice if there's 'video' at the end (entire programme given as input)
-	videoNum[0] = videoNum[0].split('\/').slice(-2)[0];
+	//videoNum[0] = videoNum[0].split('\/').slice(-2)[0];
 
+
+
+	//! crucial - video number passed to the API - it's the particular video/series interior number (from URL)
 	var vodAPIurlWithVideoNumber = vodAPIurl.replace('VIDEO', videoNum[0]);
 	//console.log('API URL: ' + vodAPIurlWithVideoNumber);
 
@@ -101,9 +122,9 @@ async function downloadSingleURL(singleVideoURL) {
 						//! getting maximum/minimum bitrate from all URLs
 						// change '<' to '>' to get max. bitrate, if '<' left - download the lowest bitrate file
 						if (!redownloading) {
-							var maxBitrateIndex = vidBitrates.reduce((iMax, x, i, arr) => x > arr[iMax] ? i : iMax, 0); // get highest bitrate video index
+							var maxBitrateIndex = vidBitrates.reduce((iMax, x, i, arr) => x < arr[iMax] ? i : iMax, 0); // get highest bitrate video index
 						} else {
-							var maxBitrateIndex = vidBitrates.reduce((iMax, x, i, arr) => x > arr[iMax+1] ? i : iMax, 0); // get highest bitrate video index
+							var maxBitrateIndex = vidBitrates.reduce((iMax, x, i, arr) => x < arr[iMax + 1] ? i : iMax, 0); // get second highest bitrate video index
 						}
 						//! getting video URLs
 						var vidURLtoDownload = vidURLs[maxBitrateIndex].replace(/\\\//g, "\/").slice(8);
@@ -148,7 +169,7 @@ async function downloadSingleURL(singleVideoURL) {
 									setTimeout(() => {
 										downloadSingleURL(url);
 									}, 1000); //! try re-downloading in 1 sec intervals
-									
+
 								} catch (e) {
 									console.error(e);
 								}
@@ -167,7 +188,7 @@ async function downloadSingleURL(singleVideoURL) {
 					}
 				});
 		});
-	//! it looks like this return or Promise was crucial... or not?
+
 	return Promise.resolve(1);
 };
 
@@ -175,24 +196,42 @@ async function downloadSingleURL(singleVideoURL) {
 //let urlsList = [];
 async function downloadAll(videos) {
 
-	// TODO: it's BROKEN HEREEEEEEEEEEEEEEEEEE
-	//[urlsList] = await allVids.parse();
-	//let urlsList = allVids.parse();
 
-
-
-	//	urlsList = result;
-	//console.log('Urls list: ' + urlsList);
-	//console.log(videos);
 	console.log("\x1b[32m%s\x1b[0m", '\nSuccesfully got data from TVP API!\n');
 	console.log(videos[0]);
 
 	//downloadSingleURL("https://vod.tvp.pl/website/" + videos[0]);
 
+
+	let firstEpisodeNum = 0;
+	let lastEpisodeNum = 0;
+
 	const Queue = require('async-await-queue');
 	const queue = new Queue(1, vodDelayTimeInSecs * 1000); // (x, y) - where x = num of parallel downloads, y = time between them
 	let p = [];
-	for (let i = 0; i < videos.length; i++) {
+
+	//! download particular episodes (X to Y passed as arguments)
+
+	// first episode number
+	if (!isNaN(passedArgs[2])) {
+		firstEpisodeNum = passedArgs[2];
+	} else {
+		firstEpisodeNum = 1;
+	}
+
+	// last episode number
+	if (!isNaN(passedArgs[3])) {
+		lastEpisodeNum = passedArgs[3];
+		// if given ep number is greater than available
+		if (lastEpisodeNum > videos.length) {
+			lastEpisodeNum = videos.length;
+		}
+	} else {
+		lastEpisodeNum = videos.length;
+	}
+
+	for (let i = firstEpisodeNum - 1; i < lastEpisodeNum; i++) {
+		//for (let i = 0; i < videos.length; i++) {
 
 		/* 		try {
 					const html = await downloadSingleURL("https://vod.tvp.pl/website/" + videos[i]);
@@ -229,7 +268,7 @@ async function downloadAll(videos) {
 				setTimeout(() => {
 					console.log("\x1b[36m%s\x1b[0m", ".... i\'ve waited " + delayInSecs + " seconds ....");
 					resolve(1);
-				}, delayInSecs*1000); //! 'delayInSecs' seconds after finishing
+				}, delayInSecs * 1000); //! 'delayInSecs' seconds after finishing
 			});
 		})
 
