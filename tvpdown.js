@@ -132,6 +132,9 @@ async function downloadSingleURL(singleVideoURL) {
 							// get filesize:
 							let fileSize = parseFloat(data.headers['content-length'] / 1048576).toFixed(2); // 1048576 = 1024 squared, bytes in 1 Megabyte
 
+							// print fileSize if different to 0 MB:
+							(fileSize != 0) ? console.log('Total filesize: ' + "\x1b[33m%s\x1b[0m", fileSize + " MB") : null;
+
 							//! redownloading?
 							if (fileSize == 0) {
 								console.error("\x1b[31m%s\x1b[0m", "-- Filesize of this file is 0 MB, something went wrong, re-downloading!");
@@ -162,8 +165,6 @@ async function downloadSingleURL(singleVideoURL) {
 							} else {
 								redownloading = false;
 							}
-
-							console.log('Total filesize: ' + "\x1b[33m%s\x1b[0m", fileSize + " MB");
 						});
 
 
