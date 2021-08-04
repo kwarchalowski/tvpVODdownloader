@@ -1,9 +1,6 @@
 // TVP VOD DOWNLOADER
-// by z0miren, Dec 2020
+// Karol Warchalowski, Dec 2020 --> Aug 2021
 //---------------------
-
-// TODO: ANY URL FORMAT PARSING
-
 
 module.exports = {
 	checkDirectory: function (videos) {
@@ -11,55 +8,45 @@ module.exports = {
 	},
 	downloadAll: function (videos) {
 		return downloadAll(videos);
-		/* 		return new Promise((resolve, _reject) => {
-						downloadAll(videos);
-						resolve('Oto prezent!');
-				}) */
-	},
-	doEverything: function () {
-		doEverything();
 	}
 }
 
-
 const fetch = require("node-fetch");
 const fs = require('fs');
-// askQuestion (prob. about bitrate)
-const prompt = require('prompt-sync')();
-
 const allVids = require('./allVidsIdScraper');
-const vodDelayTimeInSecs = 1;
-// passedArgs -
-// 0 - site URL
-// 1 - downloads folder name (dirName) at place
-// 2 - batch download (all/none)
-var passedArgs = process.argv.slice(2);
+const vodDelayTimeInSecs = 3;
 
 // URL to the VOD API, where:
 // VIDEO = single video number
 // JSONCALLBACK = whatever, just name of the returned JSON structure
 const vodAPIurl = 'https://vod.tvp.pl/sess/TVPlayer2/api.php?id=VIDEO&@method=getTvpConfig&@callback=JSONCALLBACK';
 
-var url = passedArgs[0];
+// passedArgs -
+// 0 - site URL
+// 1 - downloads folder name (dirName) at place
+// 2 - batch download (all/none)
+let passedArgs = process.argv.slice(2);
 
-// var splitURL = url.split(',');
-var videoNum = url.split(',').slice(-1); // get the last part of URL (video number)
-var dirName = passedArgs[1];
-
-
-
-let urlsList = [];
-
-let redownloading = false;
-
-var APIresponse;
+let url = passedArgs[0];
+let videoNum = url.split(',').slice(-1); // get the last part of URL (video number)
+let dirName = passedArgs[1];
+let redownloading = false; // initial re-downloading state is false (assumption that everything works)
+let APIresponse;
+let chosenBitrate = "min";
 
 //!  parse URLs
 //! ----------------------------------
-allVids.parse();
+console.log("\x1b[33m%s\x1b[0m", "\n\n-- PASSED ARGS --");
+console.log("URL: " + "\x1b[33m%s\x1b[0m", url);
+console.log("dir: ./" + "\x1b[33m%s\x1b[0m", dirName);
+passedArgs[2] ? console.log("bitrate: " + "\x1b[33m%s\x1b[0m", chosenBitrate = passedArgs[2]) : console.log("\x1b[33m%s\x1b[0m", "-- no bitrate chosen, downloading with the lowest one --"); // min/max
+passedArgs[3] ? console.log("first ep: " + "\x1b[33m%s\x1b[0m", passedArgs[3]) : null;
+passedArgs[4] ? console.log("last ep: " + "\x1b[33m%s\x1b[0m", passedArgs[4]) : null;
+
+console.log("\x1b[33m%s\x1b[0m", "-- -- -- -- --\n\n");
+
+allVids.parse(url);
 //! ----------------------------------
-
-
 
 async function downloadSingleURL(singleVideoURL) {
 
@@ -80,20 +67,9 @@ async function downloadSingleURL(singleVideoURL) {
 		}
 	}
 
-	// slice if there's 'video' at the end (entire programme given as input)
-	//videoNum[0] = videoNum[0].split('\/').slice(-2)[0];
-
-
-
 	//! crucial - video number passed to the API - it's the particular video/series interior number (from URL)
-	var vodAPIurlWithVideoNumber = vodAPIurl.replace('VIDEO', videoNum[0]);
-	//console.log('API URL: ' + vodAPIurlWithVideoNumber);
-
-	//console.log('Video ID: ' + "\x1b[33m%s\x1b[0m", videoNum[0]);
-	//console.log("vodAPIurlWithVideoNumber: " + vodAPIurlWithVideoNumber);
-
-	//console.log("singleVideoURL: " + singleVideoURL);
-
+	let vodAPIurlWithVideoNumber = vodAPIurl.replace('VIDEO', videoNum[0]);
+	let maxBitrateIndex;
 
 	fetch(vodAPIurlWithVideoNumber)
 		.then(function (response) {
@@ -101,40 +77,49 @@ async function downloadSingleURL(singleVideoURL) {
 			response.text()
 				.then(async function (text) {
 					APIresponse = text;
-					//console.log(APIresponse.slice(50));
+
 					// try downloading:
 					try {
 
-						var vidTitle = escape(APIresponse.match(/"title":.*/)[0].slice(10, -2));  // returning video (program) name
+						let vidTitle = escape(APIresponse.match(/"title":.*/)[0].slice(10, -2));  // returning video (program) name
 						console.log("Video title: " + "\x1b[33m%s\x1b[0m", vidTitle);
 
-						var vidSubtitle = escape(APIresponse.match(/"subtitle":.*/)[0].slice(13, -2).replace("\\", "")); // returning video (subtitle) name
+						let vidSubtitle = escape(APIresponse.match(/"subtitle":.*/)[0].slice(13, -2).replace("\\", "")); // returning video (subtitle) name
 						console.log("Video subtitle: " + "\x1b[33m%s\x1b[0m", vidSubtitle);
 
-						var vidURLs = APIresponse.match(/"url":.*(mp4|m3u8)/g); // all video URLs
-						var vidBitrates = APIresponse.match(/"bitrate":.*/g); // videos bitrates
+						let vidURLs = APIresponse.match(/"url":.*(mp4|m3u8)/g); // all video URLs
+						let vidBitrates = APIresponse.match(/"bitrate":.*/g); // videos bitrates
 
 						//! getting maxBitate video's index from matches
-						for (var i = 0; i < vidBitrates.length; i++) {
+						for (let i = 0; i < vidBitrates.length; i++) {
 							vidBitrates[i] = parseInt(vidBitrates[i].slice(11, -1));
 						}
 
 						//! getting maximum/minimum bitrate from all URLs
-						// change '<' to '>' to get max. bitrate, if '<' left - download the lowest bitrate file
-						if (!redownloading) {
-							var maxBitrateIndex = vidBitrates.reduce((iMax, x, i, arr) => x < arr[iMax] ? i : iMax, 0); // get highest bitrate video index
-						} else {
-							var maxBitrateIndex = vidBitrates.reduce((iMax, x, i, arr) => x < arr[iMax + 1] ? i : iMax, 0); // get second highest bitrate video index
-						}
-						//! getting video URLs
-						var vidURLtoDownload = vidURLs[maxBitrateIndex].replace(/\\\//g, "\/").slice(8);
+						//! change '<' to '>' to get max. bitrate, if '<' left - download the lowest bitrate file
 
-						//console.log("\nDownloading from URL: " + "\x1b[33m%s\x1b[0m", vidURLtoDownload);
+						if (chosenBitrate == "min") {
+							if (!redownloading) {
+								maxBitrateIndex = vidBitrates.reduce((iMax, x, i, arr) => x < arr[iMax] ? i : iMax, 0); // get highest bitrate video index
+							} else {
+								maxBitrateIndex = vidBitrates.reduce((iMax, x, i, arr) => x < arr[iMax + 1] ? i : iMax, 0); // get second highest bitrate video index
+							}
+						} else if (chosenBitrate == "max") {
+							if (!redownloading) {
+								maxBitrateIndex = vidBitrates.reduce((iMax, x, i, arr) => x > arr[iMax] ? i : iMax, 0); // get highest bitrate video index
+							} else {
+								maxBitrateIndex = vidBitrates.reduce((iMax, x, i, arr) => x > arr[iMax + 1] ? i : iMax, 0); // get second highest bitrate video index
+							}
+						}
+
+
+						//! getting video URLs
+						let vidURLtoDownload = vidURLs[maxBitrateIndex].replace(/\\\//g, "\/").slice(8);
 
 						//! Downloading a file (creating/downloading)
 						const https = require('https');
 
-						var filename = vidTitle + " - " + vidSubtitle + ".[" + Date.now() + "].mp4";
+						let filename = vidTitle + " - " + vidSubtitle + ".[" + Date.now() + "].mp4";
 						console.log("- Created file: " + "\x1b[32m%s\x1b[0m", filename + "\x1b[0m", " in directory " + "\x1b[32m", dirName);
 						console.log("\x1b[32m%s\x1b[0m", "-- Downloading file... (bitrate: " + vidBitrates[maxBitrateIndex] + ")");
 						const file = fs.createWriteStream(dirName + "/" + filename);
@@ -143,8 +128,9 @@ async function downloadSingleURL(singleVideoURL) {
 						});
 
 						request.on('response', function (data) {
-							var fileSize = parseFloat(data.headers['content-length'] / 1048576).toFixed(2); // 1048576 = 1024 squared, bytes in 1 Megabyte
 
+							// get filesize:
+							let fileSize = parseFloat(data.headers['content-length'] / 1048576).toFixed(2); // 1048576 = 1024 squared, bytes in 1 Megabyte
 
 							//! redownloading?
 							if (fileSize == 0) {
@@ -160,7 +146,7 @@ async function downloadSingleURL(singleVideoURL) {
 										// other errors, e.g. maybe we don't have enough permission
 										console.error("\x1b[31m%s\x1b[0m", "Error occurred while trying to remove file");
 									} else {
-										console.log("\x1b[34m%s\x1b[0m", filename + " removed!");
+										console.log("\x1b[34m%s\x1b[0m", filename + " removed!"); // feedback that broken file was removed
 									}
 								});
 
@@ -192,36 +178,31 @@ async function downloadSingleURL(singleVideoURL) {
 	return Promise.resolve(1);
 };
 
-
-//let urlsList = [];
 async function downloadAll(videos) {
 
+	let parallelDownloads = 2;
 
-	console.log("\x1b[32m%s\x1b[0m", '\nSuccesfully got data from TVP API!\n');
-	console.log(videos[0]);
-
-	//downloadSingleURL("https://vod.tvp.pl/website/" + videos[0]);
-
+	//console.log("\x1b[32m%s\x1b[0m", '\nSuccesfully got data from TVP API!\n');
 
 	let firstEpisodeNum = 0;
 	let lastEpisodeNum = 0;
 
+	//! queue consts and other variables to handle downloading queue
 	const Queue = require('async-await-queue');
-	const queue = new Queue(1, vodDelayTimeInSecs * 1000); // (x, y) - where x = num of parallel downloads, y = time between them
+	const queue = new Queue(parallelDownloads, vodDelayTimeInSecs * 1000); // (x, y) - where x = num of parallel downloads, y = time between them
 	let p = [];
 
-	//! download particular episodes (X to Y passed as arguments)
-
+	//! download particular episodes (X to Y passed as arguments) --
 	// first episode number
-	if (!isNaN(passedArgs[2])) {
-		firstEpisodeNum = passedArgs[2];
+	if (!isNaN(passedArgs[3])) {
+		firstEpisodeNum = passedArgs[3];
 	} else {
 		firstEpisodeNum = 1;
 	}
 
 	// last episode number
-	if (!isNaN(passedArgs[3])) {
-		lastEpisodeNum = passedArgs[3];
+	if (!isNaN(passedArgs[4])) {
+		lastEpisodeNum = passedArgs[4];
 		// if given ep number is greater than available
 		if (lastEpisodeNum > videos.length) {
 			lastEpisodeNum = videos.length;
@@ -229,17 +210,10 @@ async function downloadAll(videos) {
 	} else {
 		lastEpisodeNum = videos.length;
 	}
+	//! --
 
+	//! go through all episodes user wants to download and try to download them:
 	for (let i = firstEpisodeNum - 1; i < lastEpisodeNum; i++) {
-		//for (let i = 0; i < videos.length; i++) {
-
-		/* 		try {
-					const html = await downloadSingleURL("https://vod.tvp.pl/website/" + videos[i]);
-					data[videos[i]] = parse(html);
-				} catch (e) {
-					console.error(e);
-				} */
-
 
 		/* Generate a queue ID */
 		const me = Symbol();
@@ -258,15 +232,16 @@ async function downloadAll(videos) {
 		)
 	};
 
-	let delayInSecs = 6;
+	// wait at the end for delayInSecs seconds:
+	let delayInSecs = 8;
+
 	//! wait for all Promises from queue returned?
 	await Promise.allSettled(p)
 		.then(() => {
-			//console.log("\x1b[37m%s\x1b[0m", "..... its over dla chlopa .....");
 			//! return THIS promise?
 			return new Promise((resolve, _reject) => {
 				setTimeout(() => {
-					console.log("\x1b[36m%s\x1b[0m", ".... i\'ve waited " + delayInSecs + " seconds ....");
+					console.log("\x1b[36m%s\x1b[0m", ".... i\'ve waited for " + delayInSecs + " seconds ....");
 					resolve(1);
 				}, delayInSecs * 1000); //! 'delayInSecs' seconds after finishing
 			});
@@ -274,115 +249,17 @@ async function downloadAll(videos) {
 
 }
 
-//console.log("done downloading item #" + i);
-
-
-//downloadSingleURL(dwnldUrl);
-
-//var vidTitle = escape(APIresponse.match(/"title":.*/)[0].slice(10, -2));  // returning video (program) name
-//console.log("Video title: " + "\x1b[33m%s\x1b[0m", vidTitle);
-
-//var vidSubtitle = escape(APIresponse.match(/"subtitle":.*/)[0].slice(13, -2).replace("\\", "")); // returning video (subtitle) name
-//console.log("Video subtitle: " + "\x1b[33m%s\x1b[0m", vidSubtitle);
-
-
-//var vidURLs = APIresponse.match(/"url":.*(mp4|m3u8)/g); // all video URLs
-//var vidBitrates = APIresponse.match(/"bitrate":.*/g); // videos bitrates
-
-
-/* 	//! getting maxBitate video's index from matches
-	//console.log("Available bitrates:\n");
-	for (var i = 0; i < vidBitrates.length; i++) {
-		vidBitrates[i] = parseInt(vidBitrates[i].slice(11, -1));
-		//console.log(i+1 + " - " + vidBitrates[i]);
-	} */
-
-// ask for bitrate:
-//const chosenBitrate = prompt('Choose bitrate number (1-' + vidBitrates.length + '): ');
-
-
-//! getting maximum bitrate from all URLs
-//console.log(vidBitrates);
-
-// change '<' to '>' to get max. bitrate, if '<' left - download the lowest bitrate file
-
-//var maxBitrateIndex = vidBitrates.reduce((iMax, x, i, arr) => x < arr[iMax] ? i : iMax, 0); // get highest bitrate video index
-
-//console.log("Max bitrate index: " + maxBitrateIndex);
-
-
-/* 	//! getting video URLs
-	//console.log("Matches count: " + vidURLs.length);
-	var vidURLtoDownload = vidURLs[maxBitrateIndex].replace(/\\\//g, "\/").slice(8);
-	//console.log(vidURLs[vidURLs.length - 1].replace(/\\\//g, "\\"));
-	console.log("\nDownloading from URL: " + "\x1b[33m%s\x1b[0m", vidURLtoDownload); */
-//console.log(vidURLs);
-
-//console.log("Downloading file...");
-
-
-/* 	//! Downloading a file (creating/downloading)
-	const https = require('https');
-	
-	//console.log("Creating file...");
-	var filename = vidTitle + " - " + vidSubtitle + ".[" + Date.now() + "].mp4";
-	console.log("- Created file: " + "\x1b[32m%s\x1b[0m", filename + "\x1b[0m", " in directory " + "\x1b[32m", dirName);
-	console.log("\x1b[32m%s\x1b[0m", "-- Downloading file... (bitrate: " + vidBitrates[maxBitrateIndex] + ")");
-	const file = fs.createWriteStream(dirName + "/" + filename);
-	const request = https.get(vidURLtoDownload, function (response) {
-		response.pipe(file);
-	});
-	
-	
-	
-	//var fileSize = 0;
-	request.on('response', function (data) {
-		var fileSize = parseFloat(data.headers['content-length'] / 1048576).toFixed(2); // 1048576 = 1024 squared, bytes in 1 Megabyte
-		console.log('Total filesize: ' + "\x1b[33m%s\x1b[0m", fileSize + " MB");
-	}); */
-
-
-
-/* var downloadedSize;
-request.on('data', function (chunk) {
-	downloadedSize += chunk.length;
-	console.log('Downloaded ' + (downloadedSize / fileSize.toFixed(2) + ' out of ' + fileSize + " MB"));
-}); */
-
-
-/* 		// ! that doesn't work ffs
-		// TODO: FIX THAAAAAAAAT
-		request.on('end', function () {
-			console.out("\x1b[32m%s\x1b[0m", 'Downloading finished!');
-		}); */
-
-// downloading...
-//console.log(APIresponse);
-
-
-
 //check if directory exists, create one if not
 function checkDirectory(_videos) {
-	/* 	console.log("[inside checkDirectory():\n");
-		console.log("--- videos.length: " + videos.length); */
-	const dir = './' + dirName;
 
 	if (fs.existsSync(dirName)) {
 		console.log('\nDirectory ' + dirName + ' exists!');
-		// download to the dir
+		// ---> download to the dir
 	} else {
 		console.log('\nDirectory ' + dirName + ' does not exist!');
 		fs.mkdirSync(dirName, 0744);
 		console.log('\nCreated directory ./' + dirName);
-		// download to the dir
+		// ---> download to the dir
 	}
-	/* 
-		console.log("end of checkDirectory()]") */
-}
 
-
-
-function onErr(err) {
-	console.log(err);
-	return 1;
 }
