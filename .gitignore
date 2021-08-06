@@ -11,13 +11,9 @@
 # production
 /build
 
-# node_modules (big files etc)
-/node_modules
-
 # vscode debugging catalogue
 /.vscode
 /debug-folder
-
 
 # misc
 .DS_Store
@@ -25,21 +21,8 @@
 .env.development.local
 .env.test.local
 .env.production.local
-xdxxxdxdd
 
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# package lock?
-package-lock.json
-
-# ojciec-mateusz testing grounds
-/ojciec-mateusz
-/egzamin
-/egzamin-z-zycia
-/tsubasa
-/jacek-agatka
-/sloneczna-wlocznia
-/agatka
-/inspektor
