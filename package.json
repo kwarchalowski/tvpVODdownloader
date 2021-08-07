@@ -1,5 +1,5 @@
 {
-  "name": "tvp-vod-downloader",
+  "name": "tvp-downloader",
   "version": "1.0.0",
   "description": "vod.TVP.pl downloader in Node.js",
   "main": "tvpdown.js",
