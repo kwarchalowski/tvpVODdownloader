@@ -73,6 +73,7 @@ Efektem działań jest utworzony katalog ***jacek-i-agatka*** zawierający dwa w
 * [vod.tvp.pl](https://vod.tvp.pl)
 * [NPM Repo]( )
 * [(...)NodeJS command-line package](https://medium.com/netscape/a-guide-to-create-a-nodejs-command-line-package-c2166ad0452e)
+* [Writing cross-platform npm scripts on Windows](https://techblog.dorogin.com/writing-cross-platform-npm-scripts-on-windows-79c510339ea6)
 * [Github](https://github.com/kwarchalowski/tvpVODdownloader)
 * [Issues / bugs / fixes](https://github.com/kwarchalowski/tvpVODdownloader/issues)
 * [LICENSE](https://github.com/kwarchalowski/tvpVODdownloader/blob/main/LICENSE)

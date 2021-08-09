@@ -1,7 +1,7 @@
 const rp = require('request-promise');
 const async = require('async');
 const $ = require('cheerio');
-const dwnldr = require('./tvpdown');
+const dwnldr = require('./cli');
 
 
 module.exports = {

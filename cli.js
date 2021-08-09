@@ -2,10 +2,6 @@
 // Karol Warchalowski, Dec 2020 --> Aug 2021
 //---------------------
 
-//! shebang line (ignored on Windows but MANDATORY)
-#!/usr/bin/env node 
-var cli = require('./cli');
-
 module.exports = {
 	checkDirectory: function (videos) {
 		checkDirectory(videos);
