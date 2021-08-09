@@ -14,9 +14,21 @@ Niewielki program pozwalający pobrać na dysk wszystkie, bądź tylko wybrane p
 
 ## :bulb: Uruchamianie :bulb:
 
-### Argumenty oraz wywołanie programu
+### Instalacja
+
+Możliwa jest instalacja za pomocą paczki udostępnionej na platformie [npmjs.com]().  Wystarczy użyć terminala:
+
 ```
-node tvpdown.js URL DIR [bitrate] [first] [last]
+npm install tvp-vod-downloader
+```
+
+
+### Argumenty oraz wywołanie programu
+
+Po instalacji: 
+
+```
+tvp-vod-downloader URL DIR [bitrate] [first] [last]
 ```
 
 
@@ -64,14 +76,15 @@ Efektem działań jest utworzony katalog ***jacek-i-agatka*** zawierający dwa w
 
 ![picture alt](.images/downloaded-files.png "Pobrane odcinki")
 
-## Rozwój:
+#### npm package:
 
+Program został udostępniony jako paczka npm w formie powalającej na prostą instalację. Dzięki zastosowaniu wieloplatformowego systemu uruchomieniowego możliwe jest użycie programu zarówno na systemach \*nix jak i rodzinie Windows przy prostej instalacji (patrz: *:bulb: Uruchamianie :bulb:*) z poziomu terminala.
 
 
 # Linki
 
 * [vod.tvp.pl](https://vod.tvp.pl)
-* [NPM Repo]( )
+* [NPMJS Repo](https://www.npmjs.com/~kwarchalowski)
 * [(...)NodeJS command-line package](https://medium.com/netscape/a-guide-to-create-a-nodejs-command-line-package-c2166ad0452e)
 * [Writing cross-platform npm scripts on Windows](https://techblog.dorogin.com/writing-cross-platform-npm-scripts-on-windows-79c510339ea6)
 * [Github](https://github.com/kwarchalowski/tvpVODdownloader)
