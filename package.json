@@ -1,8 +1,8 @@
 {
-  "name": "tvp-downloader",
+  "name": "tvp-vod-downloader",
   "version": "1.0.0",
   "description": "vod.TVP.pl downloader in Node.js",
-  "main": "tvpdown.js",
+  "main": "cli.js",
   "dependencies": {
     "async-await-queue": "^1.2.0",
     "axios": "^0.21.1",
@@ -13,13 +13,13 @@
     "prompt": "^1.0.0",
     "prompt-sync": "^4.2.0",
     "puppeteer": "^5.5.0",
-    "request-promise": "^4.2.6",
     "request": "^2.88.2",
+    "request-promise": "^4.2.6",
     "xmlhttprequest": "^1.8.0"
   },
   "devDependencies": {},
   "scripts": {
-    "test": "node tvpdown.js https://vod.tvp.pl/website/jacek-i-agatka,52233213/video jacek-i-agatka min 1 2"
+    "test": "node cli.js https://vod.tvp.pl/website/jacek-i-agatka,52233213/video jacek-i-agatka min 1 2"
   },
   "repository": {
     "type": "git",
@@ -32,6 +32,9 @@
   ],
   "author": "kwarchalowski",
   "license": "ISC",
+  "bin": {
+    "tvp-vod-downloader": "./cli.js"
+  },
   "bugs": {
     "url": "https://github.com/kwarchalowski/tvpVODdownloader/issues"
   },

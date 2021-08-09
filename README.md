@@ -64,11 +64,15 @@ Efektem działań jest utworzony katalog ***jacek-i-agatka*** zawierający dwa w
 
 ![picture alt](.images/downloaded-files.png "Pobrane odcinki")
 
+## Rozwój:
+
+
 
 # Linki
 
 * [vod.tvp.pl](https://vod.tvp.pl)
 * [NPM Repo]( )
+* [(...)NodeJS command-line package](https://medium.com/netscape/a-guide-to-create-a-nodejs-command-line-package-c2166ad0452e)
 * [Github](https://github.com/kwarchalowski/tvpVODdownloader)
 * [Issues / bugs / fixes](https://github.com/kwarchalowski/tvpVODdownloader/issues)
 * [LICENSE](https://github.com/kwarchalowski/tvpVODdownloader/blob/main/LICENSE)
