@@ -1,6 +1,3 @@
-# **TODO: npm/moduły/instalacja!**
-
-
 # vod-tvp-downloader
 
 Niewielki program pozwalający pobrać na dysk wszystkie, bądź tylko wybrane pozycje z oferty serwisu vod.tvp.pl.
@@ -16,7 +13,7 @@ Niewielki program pozwalający pobrać na dysk wszystkie, bądź tylko wybrane p
 
 ### Instalacja
 
-Możliwa jest instalacja za pomocą paczki udostępnionej na platformie [npmjs.com]().  Wystarczy użyć terminala:
+Możliwa jest instalacja za pomocą paczki udostępnionej na platformie [npmjs.com](https://www.npmjs.com/package/tvp-vod-downloader).  Wystarczy użyć terminala:
 
 ```
 npm install tvp-vod-downloader
