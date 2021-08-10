@@ -1,8 +1,8 @@
-# vod-tvp-downloader
+# tvp-vod-downloader
 
-Niewielki program pozwalający pobrać na dysk wszystkie, bądź tylko wybrane pozycje z oferty serwisu vod.tvp.pl.
+Niewielki program pozwalający pobrać na dysk dowolny zakres odcinków z oferty platformy streamingowej vod.TVP.pl.
 
-### Serwis streamingowy [vod.tvp.pl](https://vod.tvp.pl/)
+### Serwis [vod.tvp.pl](https://vod.tvp.pl/)
 
 
 
@@ -73,7 +73,7 @@ Efektem działań jest utworzony katalog ***jacek-i-agatka*** zawierający dwa w
 
 ![picture alt](.images/downloaded-files.png "Pobrane odcinki")
 
-#### npm package:
+### npm package:
 
 Program został udostępniony jako paczka npm w formie powalającej na prostą instalację. Dzięki zastosowaniu wieloplatformowego systemu uruchomieniowego możliwe jest użycie programu zarówno na systemach \*nix jak i rodzinie Windows przy prostej instalacji (patrz: *:bulb: Uruchamianie :bulb:*) z poziomu terminala.
 
@@ -87,4 +87,5 @@ Program został udostępniony jako paczka npm w formie powalającej na prostą i
 * [Github](https://github.com/kwarchalowski/tvpVODdownloader)
 * [Issues / bugs / fixes](https://github.com/kwarchalowski/tvpVODdownloader/issues)
 * [LICENSE](https://github.com/kwarchalowski/tvpVODdownloader/blob/main/LICENSE)
+* [My website](https://warchalowski.pl)
 -------------------------------------------------------------------------------------------------
