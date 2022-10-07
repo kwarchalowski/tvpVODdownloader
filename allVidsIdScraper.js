@@ -1,20 +1,11 @@
-const rp = require('request-promise');
-const async = require('async');
-const $ = require('cheerio');
-const dwnldr = require('./cli');
-
-
-module.exports = {
-	parse: async function (wideourl) {
-		parse(wideourl);
-	},
-	vidUrls: [],
-}
+import rp from 'request-promise';
+import * as dwnldr from './cli.js';
+import cheerio from 'cheerio';
 
 const vidUrls = [];
 
 // get pages count and return all videos IDs
-const parse = async function parse(wideourl) {
+export async function parse(wideourl) {
 
 	var basePageUrl = wideourl + "?order=oldest&page="
 	var pagesCount = 0;
@@ -22,8 +13,11 @@ const parse = async function parse(wideourl) {
 
 	await rp(wideourl)
 		.then(async function (html) {
-			pagesCount = $('.pagination > li.lastItem > a', html)[0].attribs.href.split('=')[1];
 
+			const $ = cheerio.load(html);
+
+			pagesCount = $('.pagination > li.lastItem > a', html)[0].attribs.href.split('=')[1];
+			
 			console.log("Pages count: " + pagesCount);
 
 			// get all video urls

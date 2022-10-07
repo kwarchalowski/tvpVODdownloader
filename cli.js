@@ -1,19 +1,13 @@
 // TVP VOD DOWNLOADER
-// Karol Warchalowski, Dec 2020 --> Aug 2021
+// Karol Warchalowski, 2020, 2022
 //---------------------
 
-module.exports = {
-	checkDirectory: function (videos) {
-		checkDirectory(videos);
-	},
-	downloadAll: function (videos) {
-		return downloadAll(videos);
-	}
-}
+import fetch from 'node-fetch';
+import fs from 'fs';
+import * as allVids from './allVidsIdScraper.js';
+import Queue from 'async-await-queue';
+import https from 'https'
 
-const fetch = require("node-fetch");
-const fs = require('fs');
-const allVids = require('./allVidsIdScraper');
 const vodDelayTimeInSecs = 3;
 
 // URL to the VOD API, where:
@@ -48,12 +42,11 @@ console.log("\x1b[33m%s\x1b[0m", "-- -- -- -- --\n\n");
 allVids.parse(url);
 //! ----------------------------------
 
-async function downloadSingleURL(singleVideoURL) {
+export async function downloadSingleURL(singleVideoURL) {
 
 	console.log('\nPreparing URL...');
 	url = singleVideoURL;
 	videoNum = url.split(',');
-	//videoNum = url.split(',').slice(-1);
 
 	//! husk video ID from given URL
 	for (let i = 0; i < videoNum.length; i++) {
@@ -98,6 +91,7 @@ async function downloadSingleURL(singleVideoURL) {
 						//! getting maximum/minimum bitrate from all URLs
 						//! change '<' to '>' to get max. bitrate, if '<' left - download the lowest bitrate file
 
+						// ! HIDEOUS, CHANGE IT SOMEDAY XD
 						if (chosenBitrate == "min") {
 							if (!redownloading) {
 								maxBitrateIndex = vidBitrates.reduce((iMax, x, i, arr) => x < arr[iMax] ? i : iMax, 0); // get highest bitrate video index
@@ -117,8 +111,6 @@ async function downloadSingleURL(singleVideoURL) {
 						let vidURLtoDownload = vidURLs[maxBitrateIndex].replace(/\\\//g, "\/").slice(8);
 
 						//! Downloading a file (creating/downloading)
-						const https = require('https');
-
 						let filename = vidTitle + " - " + vidSubtitle + ".[" + Date.now() + "].mp4";
 						console.log("- Created file: " + "\x1b[32m%s\x1b[0m", filename + "\x1b[0m", " in directory " + "\x1b[32m", dirName);
 						console.log("\x1b[32m%s\x1b[0m", "-- Downloading file... (bitrate: " + vidBitrates[maxBitrateIndex] + ")");
@@ -179,17 +171,14 @@ async function downloadSingleURL(singleVideoURL) {
 	return Promise.resolve(1);
 };
 
-async function downloadAll(videos) {
+export async function downloadAll(videos) {
 
 	let parallelDownloads = 2;
-
-	//console.log("\x1b[32m%s\x1b[0m", '\nSuccesfully got data from TVP API!\n');
 
 	let firstEpisodeNum = 0;
 	let lastEpisodeNum = 0;
 
 	//! queue consts and other variables to handle downloading queue
-	const Queue = require('async-await-queue');
 	const queue = new Queue(parallelDownloads, vodDelayTimeInSecs * 1000); // (x, y) - where x = num of parallel downloads, y = time between them
 	let p = [];
 
@@ -251,14 +240,14 @@ async function downloadAll(videos) {
 }
 
 //check if directory exists, create one if not
-function checkDirectory(_videos) {
+export function checkDirectory(_videos) {
 
 	if (fs.existsSync(dirName)) {
 		console.log('\nDirectory ' + dirName + ' exists!');
 		// ---> download to the dir
 	} else {
 		console.log('\nDirectory ' + dirName + ' does not exist!');
-		fs.mkdirSync(dirName, 0744);
+		fs.mkdirSync(dirName, 0o0744);
 		console.log('\nCreated directory ./' + dirName);
 		// ---> download to the dir
 	}
