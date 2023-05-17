@@ -1,4 +1,9 @@
-# tvp-vod-downloader
+```diff
+- !! DEPRECATED !! - package is NOT working anymore as the VOD platform got updated some time ago.
+- There are no plans for updating this package.
+```
+
+# ~~tvp-vod-downloader~~ (deprecated)
 
 Niewielki program pozwalający pobrać na dysk dowolny zakres odcinków z oferty platformy streamingowej vod.TVP.pl.
 
